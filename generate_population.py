@@ -6,18 +6,29 @@ import numpy as np
 
 from params import *
 
+def get_neighbours(i,j,N):
+    if neighbourhood == "moore":
+        H = [(i-1) % N, (i+1) % N, i]
+        V = [(j-1) % N, (j+1) % N, j]
+        neighbours = set(product(H,V)) - {(i,j)}
+        neighbours = list(neighbours)
+    else:
+        H = [(i-1) % N, (i+1) % N]
+        V = [(j-1) % N, (j+1) % N]
+        neighbours = list(product(H,V))
+    
+    return neighbours
+
+# add a given plasmid (one) to a cell that is a neighbour of i,j in the population pop
 def give_plasmid(pop, i, j, plasmid_pair):
     plasmid_id, plasmid = plasmid_pair
     
     N = pop.shape[0]
     
-    H = [(i-1) % N, (i+1) % N]
-    V = [(j-1) % N, (j+1) % N]
-    #candidates = []
-    #for candidate in product(H,V):
-    #    if pop[candidate].mode == 1:
-    #        candidates.append(candidate)
-    candidates = list(product(H,V))
+    #H = [(i-1) % N, (i+1) % N]
+    #V = [(j-1) % N, (j+1) % N]
+    #candidates = list(product(H,V))
+    candidates = get_neighbours(i,j,N)
     
     candidate = candidates[np.random.choice(range(len(candidates)), size=1, replace=False)[0]]
 
@@ -37,15 +48,61 @@ def give_plasmid(pop, i, j, plasmid_pair):
     #print(pop[candidate].decode_function())    
     #print(pop[candidate].plasmids)    
 
+# add given plasmids to C (cell)
+def give_plasmids_directed(C, plasmid_pairs):
+    for plasmid_id, plasmid in plasmid_pairs:
+        if 'params' in plasmid:
+            params = plasmid['params'].copy
+        else:
+            params = None
+        if 'mod_degradation' in plasmid:
+            mod_degradation = plasmid['mod_degradation']
+        else:
+            mod_degradation=None
+
+        C.add_plasmid(plasmid_id, plasmid['inputs'].copy(), plasmid['output'], plasmid['f'], params, mod_degradation)  
+
+
+
+
+def cross_random_neighbours(pop, i,j):
+    N = pop.shape[0]    
+    if N == 1:
+        return False
+
+    candidates = get_neighbours(i,j,N)
+
+    C1, C2 = np.random.choice(range(len(candidates)), size=2, replace=False)
+    C1, C2 = pop[candidates[C1]], pop[candidates[C2]]
+    
+    #print(C1.plasmids.keys())
+    #print(C2.plasmids.keys())
+
+
+    C = C1.copy()
+
+    # lose half of the existing plasmids of the first cell
+    for i in range(len(C.plasmids)//2):
+        C.lose_plasmid()
+
+    # copy half of the plasmids of the second cell
+    plasmids2 = np.array(list(C2.plasmids.items()))
+    if len(plasmids2) > 1:
+        plasmids2 = plasmids2[np.random.choice(range(len(plasmids2)), size=len(plasmids2)//2, replace=False)]
+
+    
+    give_plasmids_directed(C, plasmids2)
+
+    #print(C.plasmids.keys())
+
+    return C
+
 def find_best_neighbour(pop, i,j, mode='apoptosis'):
     N = pop.shape[0]    
-    if N == 1 or np.random.random() > prob_find:
+    if N == 1:
         return False
         
-    H = [(i-1) % N, (i+1) % N]
-    V = [(j-1) % N, (j+1) % N]
-    
-    candidates = list(product(H,V))
+    candidates = get_neighbours(i,j,N)
 
     best_coords = [candidates[0]]
     best_val = pop[candidates[0]].state[mode]
@@ -122,9 +179,15 @@ def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3):
         Ps, P_ids = generate_plasmids(ins, outs, prefix = f'P{i}_')
         layers[f'layer{i}'] = P_ids
         plasmids.update(Ps)
-        
+    
+    if N_layers == 0:
+        ins = [f'in_{j}' for j in range(1, N_inputs+1)]
+        i = 0
+    else:
+        ins = outs
+    
     # output layer operons
-    Ps, P_ids = generate_plasmids(outs, ["y"], prefix = f'P{i+1}_')
+    Ps, P_ids = generate_plasmids(ins, ["y"], prefix = f'P{i+1}_')
     layers['layer_out'] = P_ids
     plasmids.update(Ps)
 

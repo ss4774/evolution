@@ -66,21 +66,20 @@ class cell:
     def add_plasmid(self, label, inputs, output, function, params=None, mod_degradation=None):
         self.add_operon(label, inputs, output, function, self.plasmids, params=params, mod_degradation=mod_degradation)
 
-    def lose_plasmid(self, rate, dt):
+    def lose_plasmid(self):
         if self.plasmids:
-            if np.random.random() < rate*dt:
-                plasmid_ids = list(self.plasmids.keys())
-                plasmid_id = np.random.choice(plasmid_ids, size=1, replace=False)[0]
-                plasmid = self.plasmids[plasmid_id]
-                del self.plasmids[plasmid_id]
-                                
-                if 'mod_degradation' in plasmid: # if output of this plasmid has a modified degradation we will potentially delete it from mod_degradation. We need to check if it has modified degradation also due to other plasmids
-                    output = plasmid['output']
-                    for p in self.plasmids.values():
-                        if (output == p['output']) and 'mod_degradation' in p:
-                            break
-                    else:
-                        del self.mod_degradation[output]
+            plasmid_ids = list(self.plasmids.keys())
+            plasmid_id = np.random.choice(plasmid_ids, size=1, replace=False)[0]
+            plasmid = self.plasmids[plasmid_id]
+            del self.plasmids[plasmid_id]
+                            
+            if 'mod_degradation' in plasmid: # if output of this plasmid has a modified degradation we will potentially delete it from mod_degradation. We need to check if it has modified degradation also due to other plasmids
+                output = plasmid['output']
+                for p in self.plasmids.values():
+                    if (output == p['output']) and 'mod_degradation' in p:
+                        break
+                else:
+                    del self.mod_degradation[output]
 
     def copy_plasmid(self, rate, dt):      
         if self.plasmids:
@@ -147,7 +146,8 @@ class cell:
             # delete plasmids        
             #lose_plasmid_rate = max_lose_plasmid_rate * np.exp(-(apoptosis_threshold-self.state['apoptosis']))    # lose plasmid rate is proportional with apoptosis signal            
             lose_plasmid_rate = max_lose_plasmid_rate * np.exp(-self.state['fitness'])    # lose plasmid rate is proportional with apoptosis signal            
-            self.lose_plasmid(lose_plasmid_rate, dt)
+            if np.random.random() < lose_plasmid_rate*dt:
+                self.lose_plasmid()
 
             # apoptosis - if apoptosis should be triggered, the update function will return a string "apoptosis"    
             if ('apoptosis' in self.state) and (self.state['apoptosis'] > apoptosis_threshold):

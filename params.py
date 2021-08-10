@@ -1,8 +1,8 @@
 # cell parameters
 fitness_threshold = 7.5
 apoptosis_threshold =  5 #10 # threshold for the cell to go in apoptosis - should be decreased over time?
-max_copy_plasmid_rate = 0#0.1
-max_lose_plasmid_rate = 0#0.1
+max_copy_plasmid_rate = 0.1
+max_lose_plasmid_rate = 0.1
 
 # protein dynamics parameters
 alpha = 10
@@ -22,5 +22,7 @@ Kd_apoptosis = 1
 n_apoptosis = 4
 delta_apoptosis = 0.01
 
-# find best neighbours
-prob_find = 0.9 # probability of taking the best neighbour or randomly initializing a cell
+# other parameters
+neighbourhood = "moore"
+prob_find_best = 0.2 # find best neighbours: probability of taking the best neighbour or randomly initializing a cell
+prob_cross = 0.9 # probability of crossover if find_best fails. If this fails, cell will be randomly initialised
