@@ -25,12 +25,19 @@ plot_resolution = 1
 
 functions = {}
 
-plasmids = [("in_1", "x11", "YES"),
-            ("in_2", "x11", "NOT"),
-            ("in_1", "x12", "NOT"),
-            ("in_2", "x12", "YES"),
-            ("x11", "y", "NOT"),
-            ("x12", "y", "NOT")]
+"""
+plasmids = [(["in_1"], "x11", "YES"),
+            (["in_2"], "x11", "NOT"),
+            (["in_1"], "x12", "NOT"),
+            (["in_2"], "x12", "YES"),
+            (["x11"], "y", "NOT"),
+            (["x12"], "y", "NOT")]
+"""
+plasmids = [(["in_1"], "not_in_1", "NOT"),
+            (["in_2"], "not_in_2", "NOT"),
+            (["in_1", "not_in_2"], "y", "AND"),
+            (["not_in_1", "in_2"], "y", "AND")]
+
 
 pop = generate_population.generate_cells_function(N, plasmids)
 """

@@ -1,8 +1,10 @@
 # cell parameters
 fitness_threshold = 7.5
-apoptosis_threshold =  5 #10 # threshold for the cell to go in apoptosis - should be decreased over time?
-max_copy_plasmid_rate = 0.1
-max_lose_plasmid_rate = 0.1
+apoptosis_threshold =  2.5 #10 # threshold for the cell to go in apoptosis - should be decreased over time?
+max_copy_plasmid_rate = 0.01
+max_lose_plasmid_rate = 0.01
+max_plasmids = 5
+max_plasmids_per_layer = 2 # ignored if not layered generation
 
 # protein dynamics parameters
 alpha = 10

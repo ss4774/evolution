@@ -1,7 +1,7 @@
 import cell
 import models
 
-from itertools import product
+from itertools import product, combinations
 import numpy as np
 
 from params import *
@@ -35,7 +35,10 @@ def give_plasmid(pop, i, j, plasmid_pair):
 
     #print(pop[candidate].decode_function())    
     #print(pop[candidate].plasmids)       
-    if  pop[candidate].mode == 1:
+    if pop[candidate].mode == 1:
+        if max_plasmids and len(pop[candidate].plasmids) >= max_plasmids: # if this cell already has a maximal number of allowed plasmids
+            return
+       
         if 'params' in plasmid:
             params = plasmid['params'].copy
         else:
@@ -64,7 +67,7 @@ def give_plasmids_directed(C, plasmid_pairs): # C...cell to which the plasmids a
         C.add_plasmid(plasmid_id, plasmid['inputs'].copy(), plasmid['output'], plasmid['f'], params, mod_degradation)  
 
 
-def apoptosis(pop, i, j, N_inputs, N_layers, N_terms):
+def apoptosis(pop, i, j, N_inputs, N_layers, N_terms, ordered_crossover=False):
     # find the best cell in the neighbourhood. If there isn't any, generate a new cell randomly                        
     elitism = False
     crossover = False
@@ -73,10 +76,10 @@ def apoptosis(pop, i, j, N_inputs, N_layers, N_terms):
     if r < prob_elitism:
         elitism = find_best_neighbour(pop, i,j)
         if elitism:
-            pop[i,j] = elitism.copy()
+            pop[i,j] = elitism
             
     elif r < prob_elitism + prob_cross:    
-        crossover =  cross_random_neighbours(pop, i,j)
+        crossover =  cross_random_neighbours(pop, i,j, ordered=ordered_crossover)
         if crossover:
             pop[i,j] = crossover
 
@@ -84,18 +87,7 @@ def apoptosis(pop, i, j, N_inputs, N_layers, N_terms):
         pop_ = generate_cells(N=1, N_inputs=N_inputs, N_layers=N_layers, N_terms=N_terms)
         pop[i,j] = pop_[0,0]
         
-
-    """
-    best_neigbhour = find_best_neighbour(pop, i,j)
-    if best_neigbhour:
-        pop[i,j] = best_neigbhour.copy()
-        #print("apoptosis best")
-    else:
-        pop_ = generate_cells(N=1, N_inputs=N_inputs, N_layers=N_layers, N_terms=N_terms)
-        pop[i,j] = pop_[0,0]
-        #print("apoptosis rand")
-    """
-def cross_random_neighbours(pop, i,j):
+def cross_random_neighbours(pop, i,j, ordered = False, duplicate=True):
     N = pop.shape[0]    
     if N == 1:
         return False
@@ -104,30 +96,37 @@ def cross_random_neighbours(pop, i,j):
 
     C1, C2 = np.random.choice(range(len(candidates)), size=2, replace=False)
     C1, C2 = pop[candidates[C1]], pop[candidates[C2]]
-    
-    #print(C1.plasmids.keys())
-    #print(C2.plasmids.keys())
-
 
     C = C1.copy()   # copy the first cell
 
-    # lose half of the existing plasmids of the first cell
-    for i in range(len(C.plasmids)//2):
-        C.lose_plasmid()
+    if duplicate: # take all plasmids from both cells
+        plasmids2 = list(C2.plasmids.items())
+        give_plasmids_directed(C, plasmids2) 
 
-    # copy half of the plasmids of the second cell
-    plasmids2 = np.array(list(C2.plasmids.items()))
-    if len(plasmids2) > 1:
-        plasmids2 = plasmids2[np.random.choice(range(len(plasmids2)), size=len(plasmids2)//2, replace=False)]
-
+    elif ordered: # take the first half from C1 and second half from C2
+        plasmid_ids1 = sorted(list(C.plasmids.keys())) # order by alphabet
+        plasmid_ids1 = plasmid_ids1[len(plasmid_ids1)//2:] # drop the second half of the plasmids
+        for p_id in plasmid_ids1:
+            C.lose_plasmid(p_id)
+        
+        plasmids2 = sorted(list(C2.plasmids.items())) # order by alphabet
+        plasmids2 = plasmids2[len(plasmids2)//2:] # keep the second half of the plasmids       
+        give_plasmids_directed(C, plasmids2)    
     
-    give_plasmids_directed(C, plasmids2)
+    else: # take some random half of plasmids from C1 and some random half of plasmids from C2
+        # lose half of the existing plasmids of the first cell
+        for i in range(len(C.plasmids)//2):
+            C.lose_plasmid()
+        # copy half of the plasmids of the second cell
+        plasmids2 = np.array(list(C2.plasmids.items()))
+        if len(plasmids2) > 1:
+            plasmids2 = plasmids2[np.random.choice(range(len(plasmids2)), size=len(plasmids2)//2, replace=False)]  
+        give_plasmids_directed(C, plasmids2)    
 
-    #print(C.plasmids.keys())
-
+    C.state['apoptosis'] = 0
     return C
 
-def find_best_neighbour(pop, i,j, mode='apoptosis'):
+def find_best_neighbour(pop, i,j, criterium='apoptosis'):
     N = pop.shape[0]    
     if N == 1:
         return False
@@ -135,28 +134,29 @@ def find_best_neighbour(pop, i,j, mode='apoptosis'):
     candidates = get_neighbours(i,j,N)
 
     best_coords = [candidates[0]]
-    best_val = pop[candidates[0]].state[mode]
+    best_val = pop[candidates[0]].state[criterium]
     
     for candidate in candidates[1:]:
-        val = pop[candidate].state[mode]
+        val = pop[candidate].state[criterium]
         if val == best_val:
             best_coords.append(candidate)        
-        elif mode == 'apoptosis': # lower is better
+        elif criterium == 'apoptosis': # lower is better
             if val < best_val:
                 best_coords = [candidate]
-        elif mode == 'fitness': # higher is better
+        elif criterium == 'fitness': # higher is better
             if val > best_val:
                 best_coords = [candidate]
     
     if len(best_coords) > 1:
         # if there are multiple equally good candidates just pick one randomly
-        best_i, best_j = best_coords[np.random.choice(range(len(best_coords)), size=1, replace=False)[0]]
+        best_i,best_j = best_coords[np.random.choice(range(len(best_coords)), size=1, replace=False)[0]]
     else:
-        best_i, best_j = best_coords[0]
+        best_i,best_j = best_coords[0]
 
-    #print(pop[best_i, best_j].decode_function())
+    C = pop[best_i, best_j].copy()
+    C.state['apoptosis'] = 0 
 
-    return pop[best_i, best_j]
+    return C
 
 
 def generate_plasmid(inputs, output, f, params = None, mod_degradation=None):
@@ -171,7 +171,7 @@ def generate_plasmid(inputs, output, f, params = None, mod_degradation=None):
 
     return d
         
-def generate_plasmids(ins, outs, prefix):
+def generate_plasmids_YES_NOT(ins, outs, prefix): # generate plasmids using only YES and NOT gates
     plasmids = {}
     plasmids_ids = []
 
@@ -189,25 +189,21 @@ def generate_plasmids(ins, outs, prefix):
         
     return plasmids, plasmids_ids
 
-def generate_program_plasmids_function(functions): # functions = [(in1, out1, func1), (in2, out2, func2)...]
+def generate_plasmids_AND(ins, outs, prefix): # generate plasmids using only YES and NOT gates
     plasmids = {}
     plasmids_ids = []
 
-    for input, output, function in functions:
-        label = f'{output}={function}({input})'
-        if function == "YES":
-            plasmid = generate_plasmid([input], output, models.YES)
-        elif function == "NOT":
-            plasmid = generate_plasmid([input], output, models.NOT)
-        else:
-            print("Invalid option!")
-            return
+    ins2 = combinations(ins,2)
 
+    for i, (inputs,output) in enumerate(product(ins2, outs)):
+        label = f'{prefix}{i}_AND'
+        plasmid = generate_plasmid(list(inputs), output, models.AND)
         plasmids[label] = plasmid
         plasmids_ids.append(label)
+        
+    return plasmids, plasmids_ids
 
 
-    return plasmids_ids, plasmids
 
 def generate_cells_function(N, functions):
     _, plasmids = generate_program_plasmids_function(functions)
@@ -239,10 +235,7 @@ def generate_cells_function(N, functions):
             
     return population
 
-        
-
-
-def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3):
+def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3, gates = ["AND"]): # generate program using only YES and NOT gates
     if type(N_terms) == int:
         N_terms = [N_terms]
         N_terms *= N_layers
@@ -259,7 +252,11 @@ def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3):
         outs = [f'x_{i+1}_{j}' for j in range(1, n_terms+1)]
 
         # input and middle layer operons
-        Ps, P_ids = generate_plasmids(ins, outs, prefix = f'P{i}_')
+        Ps, P_ids = generate_plasmids_YES_NOT(ins, outs, prefix = f'P{i}_')
+        if "AND" in gates:
+            Ps2, P_ids2 = generate_plasmids_AND(ins, outs, prefix = f'P{i}_')
+            Ps.update(Ps2)
+            P_ids.extend(P_ids2)
         layers[f'layer{i}'] = P_ids
         plasmids.update(Ps)
     
@@ -270,12 +267,43 @@ def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3):
         ins = outs
     
     # output layer operons
-    Ps, P_ids = generate_plasmids(ins, ["y"], prefix = f'P{i+1}_')
+    Ps, P_ids = generate_plasmids_YES_NOT(ins, ["y"], prefix = f'P{i+1}_')
+    if "AND" in gates:
+        Ps2, P_ids2 = generate_plasmids_AND(ins, ["y"], prefix = f'P{i+1}_')
+        Ps.update(Ps2)
+        P_ids.extend(P_ids2)
+
     layers['layer_out'] = P_ids
     plasmids.update(Ps)
 
     return plasmids, layers
    
+
+def generate_program_plasmids_function(functions): # functions = [(ins1, out1, func1), (ins2, out2, func2)...]
+    plasmids = {}
+    plasmids_ids = []
+
+    for inputs, output, function in functions:
+        label = f'{output}={function}({",".join(inputs)})'
+        if function == "YES":
+            plasmid = generate_plasmid(inputs, output, models.YES)
+        elif function == "NOT":
+            plasmid = generate_plasmid(inputs, output, models.NOT)
+        elif function == "AND":
+            plasmid = generate_plasmid(inputs, output, models.AND)   
+        elif function == "OR":
+            plasmid = generate_plasmid(inputs, output, models.OR)  
+        elif function == "NOR":
+            plasmid = generate_plasmid(inputs, output, models.NOR)
+        else:
+            print("Invalid option!")
+            return
+
+        plasmids[label] = plasmid
+        plasmids_ids.append(label)
+
+
+    return plasmids_ids, plasmids
 
 def generate_cells(N, N_inputs, N_layers = 1, N_terms = 3, layered=False):
     plasmids, layers = generate_program_plasmids(N_inputs, N_layers, N_terms)  
@@ -299,23 +327,25 @@ def generate_cells(N, N_inputs, N_layers = 1, N_terms = 3, layered=False):
             plasmids
             """
             # randomly choose plasmids from the available ones          
-            cell_plasmids = []        
-            
+            cell_plasmids = []     
+
+             
+            # if a specific number of plasmids should be taken from each layer
             if layered:
                 for layer in layers:
                     #if layer == 'layer_out':
                     #    n = 1 # take only one operon from the output layer
-                    #else:
+                    #else:                   
                     n = np.random.randint(1, len(layers[layer])) # take a random number of plasmids from a layer
-                    
+                    if max_plasmids_per_layer:
+                        n = min(n, max_plasmids_per_layer)
                     cell_plasmids.extend(np.random.choice(layers[layer], size=n, replace=False))
-            else:
-               
-                n = np.random.randint(1, len(plasmids)) # take a random number of plasmids from a layer
+            else: # if layers are ignored               
+                n = np.random.randint(1, len(plasmids)) 
+                if max_plasmids:
+                    n = min(n, max_plasmids)
                 cell_plasmids.extend(np.random.choice(list(plasmids.keys()), size=n, replace=False))
-                
-
-                
+           
             for plasmid_id in cell_plasmids:
                 plasmid = plasmids[plasmid_id]
 

@@ -66,10 +66,12 @@ class cell:
     def add_plasmid(self, label, inputs, output, function, params=None, mod_degradation=None):
         self.add_operon(label, inputs, output, function, self.plasmids, params=params, mod_degradation=mod_degradation)
 
-    def lose_plasmid(self):
+    def lose_plasmid(self, plasmid_id=None):
         if self.plasmids:
-            plasmid_ids = list(self.plasmids.keys())
-            plasmid_id = np.random.choice(plasmid_ids, size=1, replace=False)[0]
+            if plasmid_id == None:
+                plasmid_ids = list(self.plasmids.keys())
+                plasmid_id = np.random.choice(plasmid_ids, size=1, replace=False)[0]
+                
             plasmid = self.plasmids[plasmid_id]
             del self.plasmids[plasmid_id]
                             
@@ -168,39 +170,51 @@ class cell:
     """
     def decode_function(self):
         functions = {}            
-        plasmids_ids = sorted(list(self.plasmids.keys()))
+        plasmids_ids = sorted(list(self.plasmids.keys())) # should go from input to output layers. Layers are sorted by names!
 
-        inputs = []
+        all_inputs = []
 
         for p in plasmids_ids:
             plasmid = self.plasmids[p]
             output = plasmid['output']
-            input = plasmid['inputs'][0]            
-            inputs.append(input)
+            inputs = plasmid['inputs'].copy()
+            all_inputs.extend(inputs)
 
-
-            if input in functions:
-                input = functions[input]
+            for i,input in enumerate(inputs):
+                if input in functions:
+                    inputs[i] = functions[input]
             
             if 'NOT' in p:
-                func = f'NOT({input})'
+                func = f'NOT({inputs[0]})'
+            elif 'YES' in p:
+                func = f'{inputs[0]}'                
+            elif 'NOR' in p:
+                func = f'NOT({" OR ".join(inputs)})'
+            elif 'OR' in p:
+                func = f'({" OR ".join(inputs)})'
+            elif 'NAND' in p:
+                func = f'NOT({" AND ".join(inputs)})'            
+            elif 'AND' in p:
+                func = f'({" AND ".join(inputs)})'
             else:
-                func = input
+                print("Invalid option!")
+                return
 
             if output in functions:
                 functions[output] += f' OR {func}'
             else:
                 functions[output] = func
+            
         if 'y' in functions:
-            syms = symbols(",".join(inputs))
+            syms = symbols(",".join(all_inputs))
             if type(syms) != 'tuple':
                 syms = (syms,)
             
-            for input, sym in zip(inputs, syms):
+            for input, sym in zip(all_inputs, syms):
                 locals()[input] = sym
 
             f = functions['y']
-            f = f.replace("OR", "|").replace("NOT", "~")
+            f = f.replace("OR", "|").replace("NOT", "~").replace("AND", "&")
             f = to_dnf(f, True)
             f = str(f)
 
