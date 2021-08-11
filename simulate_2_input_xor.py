@@ -11,9 +11,9 @@ from collections import defaultdict
 from params import *
 
 observables_global = ["in_1", "in_2", "eval"]
-observables_local =  []#["fitness","apoptosis","y"]#, "fitness", "apoptosis"]
+observables_local =  ["fitness","apoptosis","y"]#, "fitness", "apoptosis"]
 
-N = 5 # size of the lattice is N x N
+N = 1 # size of the lattice is N x N
 N_inputs = 2 # number of inputs: in_1, in_2,...in_N_inputs
 N_layers = 1 # number of internal layers
 N_terms = 3 # number of terms per layer
@@ -25,16 +25,19 @@ plot_resolution = 1
 
 functions = {}
 
+plasmids = [("in_1", "x11", "YES"),
+            ("in_2", "x11", "NOT"),
+            ("in_1", "x12", "NOT"),
+            ("in_2", "x12", "YES"),
+            ("x11", "y", "NOT"),
+            ("x12", "y", "NOT")]
 
-pop = generate_population.generate_cells(N=N, N_inputs=N_inputs, N_layers=N_layers, N_terms=N_terms)
+pop = generate_population.generate_cells_function(N, plasmids)
 """
 for i in range(N):
     for j in range(N):
         print(pop[i,j].mod_degradation)
 """
-
-
-
 
 df = pd.DataFrame(dtype=float)
 

@@ -24,5 +24,6 @@ delta_apoptosis = 0.01
 
 # other parameters
 neighbourhood = "moore"
-prob_find_best = 0.2 # find best neighbours: probability of taking the best neighbour or randomly initializing a cell
-prob_cross = 0.9 # probability of crossover if find_best fails. If this fails, cell will be randomly initialised
+prob_elitism = 0.6 # find best neighbours: probability of taking the best neighbour and copying its state after apoptosis
+prob_cross = 0.3 # probability of crossover if find_best fails. If elitism and crossover fails, cell will be randomly initialised
+

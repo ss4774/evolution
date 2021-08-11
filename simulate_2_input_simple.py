@@ -12,7 +12,6 @@ observables_global = ["in_1", "in_2", "eval"]
 observables_local =  []#["fitness","apoptosis","y"]#, "fitness", "apoptosis"]
 
 
-
 N = 5
 N_inputs = 2
 N_layers = 1
@@ -83,20 +82,13 @@ for t in np.arange(0, t_end+dt, dt):
                             d[prefix+obs] = pop[i][j].state[obs]                                                
             action = pop[i][j].update(dt, global_vars)
             if action:
-                if len(action) == 2:
+                if len(action) == 2: # if update returns a plasmid, this plasmid will be given to a random cell
                     plasmid_pair = action
                     generate_population.give_plasmid(pop, i, j, plasmid_pair)
                 elif action == "apoptosis":
                     # print("kill")
                     # find the best cell in the neighbourhood. If there isn't any, generate a new cell randomly
-                    best_neigbhour = generate_population.find_best_neighbour(pop, i,j)
-                    if best_neigbhour:
-                        pop[i,j] = best_neigbhour.copy()
-                        #print("apoptosis best")
-                    else:
-                        pop_ = generate_population.generate_cells(N=1, N_inputs=N_inputs, N_layers=N_layers, N_terms=N_terms)
-                        pop[i,j] = pop_[0,0]
-                        #print("apoptosis rand")
+                    generate_population.apoptosis(pop, i, j, N_inputs, N_layers, N_terms)
             
             if track:
                 functions[t][pop[i,j].decode_function()] += 1

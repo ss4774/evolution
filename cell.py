@@ -6,7 +6,7 @@ import copy
 from params import *
 
 from sympy import symbols
-from sympy.logic.boolalg import to_cnf
+from sympy.logic.boolalg import to_dnf
 
 class cell:
     def __init__(self):
@@ -201,7 +201,7 @@ class cell:
 
             f = functions['y']
             f = f.replace("OR", "|").replace("NOT", "~")
-            f = to_cnf(f, True)
+            f = to_dnf(f, True)
             f = str(f)
 
             return f"y={f}"
