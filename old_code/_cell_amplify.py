@@ -16,6 +16,7 @@ class cell:
         self.mod_degradation = {} # proteins with a modified degradation rates
 
         self.mode = 1 # 0 ... not learning; 1 ... learning; 2 ... optimized
+        
 
     def copy(self):
         c = cell()
@@ -189,20 +190,8 @@ class cell:
             elif 'OR' in p:
                 func = f'({" OR ".join(inputs)})'
             elif 'NAND' in p:
-                func = f'NOT({" AND ".join(inputs)})'     
-            elif 'AND00' in p:
-                in1 = f'NOT({inputs[0]})'
-                in2 = f'NOT({inputs[1]})'                
-                func = f'({in1} AND {in2})'
-            elif 'AND01' in p:
-                in1 = f'NOT({inputs[0]})'
-                in2 = f'{inputs[1]}'                
-                func = f'({in1} AND {in2})'
-            elif 'AND10' in p:
-                in1 = f'{inputs[0]}'
-                in2 = f'NOT({inputs[1]})'                
-                func = f'({in1} AND {in2})'
-            elif ('AND' in p) or ('AND11' in p):
+                func = f'NOT({" AND ".join(inputs)})'            
+            elif 'AND' in p:
                 func = f'({" AND ".join(inputs)})'
             elif 'NOT' in p:
                 func = f'NOT({inputs[0]})'

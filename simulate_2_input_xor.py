@@ -1,19 +1,19 @@
 #import cell
 #import models
-import generate_population
+import population_generator
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from collections import defaultdict
-
-from params import *
-
 observables_global = ["in_1", "in_2", "eval"]
 observables_local =  ["fitness","apoptosis","y"]#, "fitness", "apoptosis"]
 
-N = 1 # size of the lattice is N x N
+states = {"in_1":(0,0,1,1),
+          "in_2":(0,1,0,1),
+          "out":(0,1,1,0)}
+
+N = 2 # size of the lattice is N x N
 N_inputs = 2 # number of inputs: in_1, in_2,...in_N_inputs
 N_layers = 1 # number of internal layers
 N_terms = 3 # number of terms per layer
@@ -33,83 +33,22 @@ plasmids = [(["in_1"], "x11", "YES"),
             (["x11"], "y", "NOT"),
             (["x12"], "y", "NOT")]
 """
+"""
 plasmids = [(["in_1"], "not_in_1", "NOT"),
             (["in_2"], "not_in_2", "NOT"),
             (["in_1", "not_in_2"], "y", "AND"),
             (["not_in_1", "in_2"], "y", "AND")]
-
-
-pop = generate_population.generate_cells_function(N, plasmids)
-"""
-for i in range(N):
-    for j in range(N):
-        print(pop[i,j].mod_degradation)
 """
 
-df = pd.DataFrame(dtype=float)
+plasmids = [(["in_1", "in_2"], "y", "AND01"),
+            (["in_1", "in_2"], "y", "AND00")]
 
-for it in range(iterations):
-    for t in np.arange(0, t_end+dt, dt):
-        T = t + t_end*it
 
-        if (0 <= t < 25):
-            global_vars = {"in_1": 0,
-                        "in_2": 0,
-                        "eval": 0,
-                        "learn": 1}
-        elif (25 <= t < 50):
-            global_vars = {"in_1": 0,
-                        "in_2": 10,
-                        "eval": 10,
-                        "learn": 1}
-        elif (50 <= t < 75):
-            global_vars = {"in_1": 10,
-                        "in_2": 0,
-                        "eval": 10,
-                        "learn": 1}
-        else:
-            global_vars = {"in_1": 10,
-                        "in_2": 10,
-                        "eval": 0,
-                        "learn": 1}
+p = population_generator.population_generator()
+p.generate_cells_function(N, plasmids)
+p.generate_minterms=True
 
-        track = (t % plot_resolution) == 0
-
-        if track:
-            d = {'t':T}
-            for obs in observables_global:
-                d[obs] = global_vars[obs]
-        
-            functions[T] = defaultdict(int)
-
-        
-        for i in range(N):
-            for j in range(N):
-                if track:    
-                    prefix= f'cell_{i},{j}_'
-                    for obs in observables_local:
-                        if obs in pop[i][j].state:
-                            if obs == 'y':
-                                ff = pop[i][j].decode_function()
-                                if ff:
-                                    d[prefix+ff] = pop[i][j].state[obs]
-                            else:
-                                d[prefix+obs] = pop[i][j].state[obs]                                                
-                action = pop[i][j].update(dt, global_vars)
-                if action:
-                    if len(action) == 2:
-                        plasmid_pair = action
-                        generate_population.give_plasmid(pop, i, j, plasmid_pair)
-                    elif action == "apoptosis":
-                        generate_population.apoptosis(pop, i, j, N_inputs, N_layers, N_terms)                        
-                
-                if track:
-                    functions[T][pop[i,j].decode_function()] += 1
-
-        if track:     
-            df = df.append(d, ignore_index=True, sort=False)
-            
-
+df, functions = p.simulate(states, observables_local, observables_global, t_end, dt=dt, iterations = iterations, plot_resolution = plot_resolution)
 
 df.to_csv('test.txt', index=False)
 

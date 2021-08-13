@@ -4,7 +4,7 @@ import models
 from itertools import product, combinations
 import numpy as np
 
-from params import *
+from parameter_values import *
 
 def get_neighbours(i,j,N):
     if neighbourhood == "moore":
@@ -67,7 +67,7 @@ def give_plasmids_directed(C, plasmid_pairs): # C...cell to which the plasmids a
         C.add_plasmid(plasmid_id, plasmid['inputs'].copy(), plasmid['output'], plasmid['f'], params, mod_degradation)  
 
 
-def apoptosis(pop, i, j, N_inputs, N_layers, N_terms, ordered_crossover=False):
+def apoptosis(pop, i, j, N_inputs, N_layers, N_terms, ordered_crossover=False, amplify_inputs=False):
     # find the best cell in the neighbourhood. If there isn't any, generate a new cell randomly                        
     elitism = False
     crossover = False
@@ -84,7 +84,7 @@ def apoptosis(pop, i, j, N_inputs, N_layers, N_terms, ordered_crossover=False):
             pop[i,j] = crossover
 
     if (elitism == False) and (crossover == False): # if elitism and crossover failes the cell is randomly initialised
-        pop_ = generate_cells(N=1, N_inputs=N_inputs, N_layers=N_layers, N_terms=N_terms)
+        pop_ = generate_cells(N=1, N_inputs=N_inputs, N_layers=N_layers, N_terms=N_terms, amplify_inputs=amplify_inputs)
         pop[i,j] = pop_[0,0]
         
 def cross_random_neighbours(pop, i,j, ordered = False, duplicate=True):
@@ -170,7 +170,28 @@ def generate_plasmid(inputs, output, f, params = None, mod_degradation=None):
         d['mod_degradation'] = mod_degradation
 
     return d
+
+def generate_plasmids_input_amplification(inputs, prefix): # generate input layer plasmids to amplify the inputs using YES and NOT gates
+    plasmids = {}
+    plasmids_ids = []
+
+    for i, input in enumerate(inputs):
+        label1 = f'{prefix}{i}_YES'
+        output = f'YES({input})'
+        plasmid1 = generate_plasmid([input], output, models.YES)
+        plasmids[label1] = plasmid1
+        plasmids_ids.append(label1)
+
+        label2 = f'{prefix}{i}_NOT'
+        output = f'NOT({input})'
+        plasmid2 = generate_plasmid([input], output, models.NOT)
+        plasmids[label2] = plasmid2
+        plasmids_ids.append(label2)
+
         
+    return plasmids, plasmids_ids
+
+
 def generate_plasmids_YES_NOT(ins, outs, prefix): # generate plasmids using only YES and NOT gates
     plasmids = {}
     plasmids_ids = []
@@ -205,37 +226,7 @@ def generate_plasmids_AND(ins, outs, prefix): # generate plasmids using only YES
 
 
 
-def generate_cells_function(N, functions):
-    _, plasmids = generate_program_plasmids_function(functions)
-
-    population = np.zeros((N,N), dtype=object)
-
-    for i in range(N):      
-        for j in range(N):
-
-            C = cell.cell()
-            
-            """
-            basic functions
-            """
-            # fitness
-            C.add_basic_function("fitness_operon", ["eval", "y"], "fitness", models.EQU, params = (alpha_fitness, Kd_fitness, n_fitness), mod_degradation=delta_fitness)
-            
-            # apoptosis
-            C.add_basic_function("apoptosis_operon", ["fitness"], "apoptosis", models.NOT, params=(alpha_apoptosis, Kd_apoptosis, n_apoptosis), mod_degradation = delta_apoptosis)
-
-            """
-            plasmids
-            """
-            # add all plasmids to a cell          
-            for plasmid_id, plasmid in plasmids.items():
-                C.add_plasmid(plasmid_id, plasmid['inputs'], plasmid['output'], plasmid['f'])
-
-            population[i,j] = C
-            
-    return population
-
-def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3, gates = ["AND"]): # generate program using only YES and NOT gates
+def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3, gates = ["AND"], amplify_inputs = False): # generate program using only YES and NOT gates
     if type(N_terms) == int:
         N_terms = [N_terms]
         N_terms *= N_layers
@@ -244,8 +235,10 @@ def generate_program_plasmids(N_inputs, N_layers = 1, N_terms = 3, gates = ["AND
     plasmids = {}
 
     for i, n_terms in enumerate(N_terms):
-        if i == 0:
+        if i == 0:            
             ins = [f'in_{j}' for j in range(1, N_inputs+1)]
+            if amplify_inputs:
+                ins = [f"YES({x})" for x in ins] + [f"NOT({x})" for x in ins]
         else:
             ins = [f'x_{i}_{j}' for j in range(1, n_terms+1)]
 
@@ -305,8 +298,12 @@ def generate_program_plasmids_function(functions): # functions = [(ins1, out1, f
 
     return plasmids_ids, plasmids
 
-def generate_cells(N, N_inputs, N_layers = 1, N_terms = 3, layered=False):
-    plasmids, layers = generate_program_plasmids(N_inputs, N_layers, N_terms)  
+def generate_cells_function(N, functions, N_inputs, amplify_inputs = False): # generate cells using a specific function - all cells have the same plasmids, the same function
+    _, plasmids = generate_program_plasmids_function(functions)
+
+    ins = [f'in_{j}' for j in range(1, N_inputs+1)]
+    input_plasmids, _ = generate_plasmids_input_amplification(ins, "P(in)_")
+
     population = np.zeros((N,N), dtype=object)
 
     for i in range(N):      
@@ -322,6 +319,55 @@ def generate_cells(N, N_inputs, N_layers = 1, N_terms = 3, layered=False):
             
             # apoptosis
             C.add_basic_function("apoptosis_operon", ["fitness"], "apoptosis", models.NOT, params=(alpha_apoptosis, Kd_apoptosis, n_apoptosis), mod_degradation = delta_apoptosis)
+
+            
+            #input amplification
+            if amplify_inputs:
+                
+                for plasmid_id, plasmid in input_plasmids.items():
+                     C.add_basic_function(plasmid_id, plasmid['inputs'], plasmid['output'], plasmid['f'])
+
+
+            """
+            plasmids
+            """
+            # add all plasmids to a cell          
+            for plasmid_id, plasmid in plasmids.items():
+                C.add_plasmid(plasmid_id, plasmid['inputs'], plasmid['output'], plasmid['f'])
+
+            population[i,j] = C
+            
+    return population
+
+
+
+def generate_cells(N, N_inputs, N_layers = 1, N_terms = 3, layered=False, amplify_inputs = False):
+    plasmids, layers = generate_program_plasmids(N_inputs, N_layers, N_terms, amplify_inputs = amplify_inputs)  
+    population = np.zeros((N,N), dtype=object)
+
+    ins = [f'in_{j}' for j in range(1, N_inputs+1)]
+    input_plasmids, _ = generate_plasmids_input_amplification(ins, "P(in)_")
+
+    for i in range(N):      
+        for j in range(N):
+
+            C = cell.cell()
+            
+            """
+            basic functions
+            """
+            # fitness
+            C.add_basic_function("fitness_operon", ["eval", "y"], "fitness", models.EQU, params = (alpha_fitness, Kd_fitness, n_fitness), mod_degradation=delta_fitness)
+            
+            # apoptosis
+            C.add_basic_function("apoptosis_operon", ["fitness"], "apoptosis", models.NOT, params=(alpha_apoptosis, Kd_apoptosis, n_apoptosis), mod_degradation = delta_apoptosis)
+
+
+            #input amplification
+            if amplify_inputs:                
+                for plasmid_id, plasmid in input_plasmids.items():
+                     C.add_basic_function(plasmid_id, plasmid['inputs'], plasmid['output'], plasmid['f'])
+
 
             """
             plasmids

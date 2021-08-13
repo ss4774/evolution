@@ -1,0 +1,4 @@
+- večvhodne funkcije z mintermi
+- optimizacija: počasnejša razgradnja fitnesa, višji prag za naučenost; kalibracija parametrov (tudi ostalih: verjetnost rekombinacije, reinicializacije...)
+
+- graf: trajektorija učenja - kdaj je prišel do prave fitness funkcije (koliko procentov funkcij/celic je pravilnih)

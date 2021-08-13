@@ -1,4 +1,4 @@
-from params import *
+from parameter_values import *
 
 #alpha = 10
 #Kd = 1
@@ -30,6 +30,42 @@ def AND(in1, in2, params = (alpha, Kd, n)):
     dy_dt = alpha * (frac1*frac2)/(1 + frac1 + frac2 + frac1*frac2)
     
     return dy_dt
+
+
+def AND00(in1, in2, params = (alpha, Kd, n)):        
+    alpha, Kd, n = params
+
+    frac1 = (in1/Kd)**n
+    frac2 = (in2/Kd)**n
+    dy_dt = alpha * (1)/(1 + frac1 + frac2 + frac1*frac2)
+    
+    return dy_dt
+
+
+def AND01(in1, in2, params = (alpha, Kd, n)):        
+    alpha, Kd, n = params
+
+    frac1 = (in1/Kd)**n
+    frac2 = (in2/Kd)**n
+    dy_dt = alpha * (frac2)/(1 + frac1 + frac2 + frac1*frac2)
+    
+    return dy_dt
+
+def AND10(in1, in2, params = (alpha, Kd, n)):        
+    alpha, Kd, n = params
+
+    frac1 = (in1/Kd)**n
+    frac2 = (in2/Kd)**n
+    dy_dt = alpha * (frac1)/(1 + frac1 + frac2 + frac1*frac2)
+    
+    return dy_dt
+
+def AND11(in1, in2, params = (alpha, Kd, n)):        
+    
+    return AND(in1, in2, params)
+
+
+
 
 def OR(in1, in2, params = (alpha, Kd, n)):        
     alpha, Kd, n = params
