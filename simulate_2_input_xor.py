@@ -41,7 +41,7 @@ plasmids = [(["in_1"], "not_in_1", "NOT"),
 """
 
 plasmids = [(["in_1", "in_2"], "y", "AND01"),
-            (["in_1", "in_2"], "y", "AND00")]
+            (["in_1", "in_2"], "y", "AND10")]
 
 
 p = population_generator.population_generator()

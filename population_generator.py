@@ -338,7 +338,7 @@ class population_generator:
         ins2= combinations(ins,2)
 
         # only for two input gates 
-        # TODO: functionality for an arbitrary number of inputs
+        # TODO: an arbitrary number of inputs
         for i, inputs in enumerate(ins2):
             inputs = list(inputs)
             
@@ -412,8 +412,6 @@ class population_generator:
         else:
             self.possible_plasmids, self.layers = self.generate_program_plasmids() 
             plasmids, layers = self.possible_plasmids, self.layers   
-
-
 
         """
         basic functions
