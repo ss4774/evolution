@@ -3,6 +3,7 @@ import models
 
 from itertools import product, combinations
 from collections import defaultdict
+from functools import partial
 
 import numpy as np
 
@@ -11,7 +12,7 @@ import parameter_values
 import pandas as pd
 
 class population_generator:
-    def __init__(self,  neighbourhood = "moore", ordered_crossover=True):        
+    def __init__(self,  neighbourhood = "moore"):        
         self.neighbourhood = neighbourhood
         self.pop = None
         
@@ -20,13 +21,13 @@ class population_generator:
         self.N_layers = 1
         self.N_terms = 2
 
-        self.ordered_crossover=ordered_crossover
+       
         self.generate_minterms = False
         
         self.possible_plasmids = None
         self.layers = None
 
-
+    # get indices of all possible neighbours
     def get_neighbours(self, i,j):
         N = self.N
         neighbourhood = self.neighbourhood
@@ -43,7 +44,7 @@ class population_generator:
         
         return neighbours
 
-    # add a given plasmid (one) to a cell that is a neighbour of i,j in the population pop
+    # add a given plasmid (one) to a random cell that is a neighbour of i,j in the population pop
     def give_plasmid(self, i, j, plasmid_pair):
         plasmid_id, plasmid = plasmid_pair
         
@@ -79,7 +80,7 @@ class population_generator:
         #print(pop[candidate].decode_function())    
         #print(pop[candidate].plasmids)    
 
-    # add given plasmids to C (cell)
+    # add a given plasmids to C (cell)
     def give_plasmids_directed(self, C, plasmid_pairs): # C...cell to which the plasmids are copied; plasmid_pairs = [(plasmid_id1, plasmid1),(plasmid_id2, plasmid2),...]
         for plasmid_id, plasmid in plasmid_pairs:
             if 'params' in plasmid:
@@ -94,6 +95,7 @@ class population_generator:
             C.add_plasmid(plasmid_id, plasmid['inputs'].copy(), plasmid['output'], plasmid['f'], params, mod_degradation)  
 
 
+    # kill me and replace me with (1) someone better (elitism), (2) with a combination of two random parents - they should be good if they are still alive (crossover) or (3) just someone random
     def apoptosis(self, i, j):
         pop = self.pop
         
@@ -120,11 +122,13 @@ class population_generator:
             
             pop[i,j] = C
             
-    def cross_random_neighbours(self, i,j, duplicate=False):
+
+    # find two random neighbours and perform their crossover
+    def cross_random_neighbours(self, i,j, duplicate=False, ordered=False):
         
         pop = self.pop
         N = self.N
-        ordered = self.ordered_crossover
+        
 
         if N == 1:
             return False
@@ -164,6 +168,8 @@ class population_generator:
         C.state['apoptosis'] = 0
         return C
 
+
+    # find a neighbour that is the best given a specified criterium (by default - the lowest value of apoptosis signa)
     def find_best_neighbour(self, i,j, criterium='apoptosis'):
         N = self.N
         pop = self.pop
@@ -198,7 +204,7 @@ class population_generator:
 
         return C
 
-
+    # generate a plasmid with given inputs, outputs and function
     def generate_plasmid(self, inputs, output, f, params = None, mod_degradation=None):
         d = {}
         d['inputs'] = inputs
@@ -210,7 +216,8 @@ class population_generator:
             d['mod_degradation'] = mod_degradation
 
         return d
-            
+
+    # generate YES and NOT function plasmids (2)        
     def generate_plasmids_YES_NOT(self, ins, outs, prefix): # generate plasmids using only YES and NOT gates
         plasmids = {}
         plasmids_ids = []
@@ -228,6 +235,7 @@ class population_generator:
             
         return plasmids, plasmids_ids
 
+    # generate AND function plasmid
     def generate_plasmids_AND(self, ins, outs, prefix): # generate plasmids using only YES and NOT gates
         plasmids = {}
         plasmids_ids = []
@@ -242,6 +250,7 @@ class population_generator:
             
         return plasmids, plasmids_ids
 
+    # generate cells with a given function - used only for debugging
     def generate_cells_function(self, N, functions):
         self.N = N
 
@@ -274,7 +283,44 @@ class population_generator:
                 
         self.pop = population
 
-    def generate_program_plasmids(self, gates = ["AND"]): # generate program using only YES and NOT gates; 
+    # generator of a fixed function - used only for debugging
+    def generate_program_plasmids_function(self, functions): # functions = [(ins1, out1, func1), (ins2, out2, func2)...]
+        plasmids = {}
+        plasmids_ids = []
+
+        for inputs, output, function in functions:
+            label = f'{output}={function}({",".join(inputs)})'
+            if function == "YES":
+                plasmid = self.generate_plasmid(inputs, output, models.YES)
+            elif function == "NOT":
+                plasmid = self.generate_plasmid(inputs, output, models.NOT)
+            elif function == "AND":
+                plasmid = self.generate_plasmid(inputs, output, models.AND)   
+            elif function == "AND00":
+                plasmid = self.generate_plasmid(inputs, output, models.AND00)   
+            elif function == "AND01":
+                plasmid = self.generate_plasmid(inputs, output, models.AND01)               
+            elif function == "AND10":
+                plasmid = self.generate_plasmid(inputs, output, models.AND10)   
+            elif function == "AND11":
+                plasmid = self.generate_plasmid(inputs, output, models.AND11)   
+            elif function == "OR":
+                plasmid = self.generate_plasmid(inputs, output, models.OR)  
+            elif function == "NOR":
+                plasmid = self.generate_plasmid(inputs, output, models.NOR)
+            else:
+                print("Invalid option!")
+                return
+
+            plasmids[label] = plasmid
+            plasmids_ids.append(label)
+
+
+        return plasmids_ids, plasmids
+
+
+    # generate program using only YES and NOT gates
+    def generate_program_plasmids(self, gates = ["AND"]):
         N_inputs = self.N_inputs
         N_layers = self.N_layers
         N_terms = self.N_terms
@@ -327,6 +373,7 @@ class population_generator:
 
         return plasmids, layers
 
+    # generator of minterm plasmids
     def generate_program_plasmids_minterms(self): # generate all minterms for a given number of inputs    
                 
         N_inputs = self.N_inputs
@@ -334,11 +381,34 @@ class population_generator:
         plasmids = {}
         plasmids_ids = []
 
-        ins = [f'in_{j}' for j in range(1, N_inputs+1)]
+        inputs = [f'in_{j}' for j in range(1, N_inputs+1)]
+        
+        # go through all possible combinations for a given number of inputs
+        for i in range(2**N_inputs):
+            code = str(bin(i))[2:].zfill(N_inputs) # convert to binary string to define a minterm: 0 - NOT, 1 - YES
+            label = f'P0_AND_minterm_{code}'    
+            output = 'y'    
+            #f = lambda *ins: models.generalised_AND(*ins, code=my_code) # - this closure doesn't work          
+            f = partial(models.generalised_AND, code) # use a closure over models.generalised_AND to fix a function to a given code - minterm
+            plasmid = self.generate_plasmid(inputs, output, f) # add the minterm to all possible minterms
+            plasmids[label] = plasmid
+            plasmids_ids.append(label)
+
+        """
+        for i in range(2**N_inputs):
+            my_code = str(bin(i))[2:].zfill(N_inputs)
+            label = f'P0_AND_minterm_{my_code}'            
+            output = 'y'
+            f = lambda *ins: models.generalised_AND(*ins, code=my_code)            
+            plasmid = self.generate_plasmid(inputs, output, f)
+            plasmids[label] = plasmid
+            plasmids_ids.append(label)
+        """
+
+        """
         ins2= combinations(ins,2)
 
-        # only for two input gates 
-        # TODO: an arbitrary number of inputs
+        # only for two input gates         
         for i, inputs in enumerate(ins2):
             inputs = list(inputs)
             
@@ -365,45 +435,12 @@ class population_generator:
             plasmid = self.generate_plasmid(inputs, output, models.AND11)
             plasmids[label] = plasmid
             plasmids_ids.append(label)
-
+        """
             
         return plasmids, plasmids_ids
 
-
-    def generate_program_plasmids_function(self, functions): # functions = [(ins1, out1, func1), (ins2, out2, func2)...]
-        plasmids = {}
-        plasmids_ids = []
-
-        for inputs, output, function in functions:
-            label = f'{output}={function}({",".join(inputs)})'
-            if function == "YES":
-                plasmid = self.generate_plasmid(inputs, output, models.YES)
-            elif function == "NOT":
-                plasmid = self.generate_plasmid(inputs, output, models.NOT)
-            elif function == "AND":
-                plasmid = self.generate_plasmid(inputs, output, models.AND)   
-            elif function == "AND00":
-                plasmid = self.generate_plasmid(inputs, output, models.AND00)   
-            elif function == "AND01":
-                plasmid = self.generate_plasmid(inputs, output, models.AND01)               
-            elif function == "AND10":
-                plasmid = self.generate_plasmid(inputs, output, models.AND10)   
-            elif function == "AND11":
-                plasmid = self.generate_plasmid(inputs, output, models.AND11)   
-            elif function == "OR":
-                plasmid = self.generate_plasmid(inputs, output, models.OR)  
-            elif function == "NOR":
-                plasmid = self.generate_plasmid(inputs, output, models.NOR)
-            else:
-                print("Invalid option!")
-                return
-
-            plasmids[label] = plasmid
-            plasmids_ids.append(label)
-
-
-        return plasmids_ids, plasmids
-
+    
+    # generate a single cell with basic (YES, NOT) functions 
     def generate_cell(self, layered=False):
         C = cell.cell()
 
@@ -455,6 +492,7 @@ class population_generator:
 
         return C
 
+    # generate cells with basic (YES, NOT) functions for a given size of a lattice (N), given number of inputs (N_inputs), layers of functions (N_layers) and number of disjunctive terms in each layer (N_terms)
     def generate_cells(self, N, N_inputs, N_layers, N_terms):
         
         self.generate_minterms = False  
@@ -476,6 +514,8 @@ class population_generator:
                 
         self.pop = population
 
+
+    # generate a cell having plasmids that are a subset of a set of all possible minterms
     def generate_cell_minterms(self):
         C = cell.cell()
 
@@ -483,7 +523,7 @@ class population_generator:
             plasmids = self.possible_plasmids
         else:
             plasmids, _ = self.generate_program_plasmids_minterms()
-            self.possible_plasmids = plasmids
+            self.possible_plasmids = plasmids # to avoid generating all possible plasmids for each cell separately
         
         """
         basic functions
@@ -499,10 +539,12 @@ class population_generator:
         """
         # randomly choose plasmids from the available ones          
         cell_plasmids = []     
-                                                                
-        n = np.random.randint(1, len(plasmids)) 
+
+        max_plasmids = len(plasmids)
         if parameter_values.max_plasmids:
-            n = min(n, parameter_values.max_plasmids)
+            max_plasmids = min(max_plasmids, parameter_values.max_plasmids)
+
+        n = np.random.randint(1, max_plasmids) 
         cell_plasmids.extend(np.random.choice(list(plasmids.keys()), size=n, replace=False))
     
         for plasmid_id in cell_plasmids:
@@ -512,6 +554,7 @@ class population_generator:
 
         return C        
 
+    # generate cells with minterms: generate and distribute possible minterms for a given number of inputs (N_inputs) and a given number of cells in a lattice (N)
     def generate_cells_minterms(self, N, N_inputs):
         self.generate_minterms = True # for latter calls of generation (e.g., when apoptosis occurs)
         self.N = N
@@ -531,6 +574,10 @@ class population_generator:
                 
         self.pop = population
 
+
+    #
+    # !!! SIMULATION !!!
+    # 
     def simulate(self, states, observables_local, observables_global, t_end, dt=0.1, iterations = 1, plot_resolution = 1):
 
         N = self.N
@@ -539,73 +586,70 @@ class population_generator:
         df = pd.DataFrame(dtype=float)
         functions = {}
 
+        N_states = len(list(states.values())[0]) # how many different states are simulated in 1 iteration
+        state_duration = (t_end + dt) / N_states # what is a duration of one state
+                
+        global_vars = {} # global variables that will be defined in dependece on current state and will be imposed to cells for learning
+
+        # simulations are performed for t_end*iterations time
         for it in range(iterations):
             for t in np.arange(0, t_end+dt, dt):
-                T = t + t_end*it
+                T = t + t_end*it # actual current time
+                idx_state = int(t//state_duration) # current state index
 
-                t_end_div_4 = t_end/4
+                # set global learning signals (in dependence on current state)
+                for var,s in states.items():
+                    global_vars[var] = s[idx_state]
+                global_vars["learn"] = 1                
 
-                if (0 <= t < t_end_div_4):
-                    global_vars = {"in_1": states["in_1"][0]*10,
-                                "in_2": states["in_2"][0]*10,
-                                "eval": states["out"][0]*10,
-                                "learn": 1}
-                elif (t_end_div_4 <= t < 2*t_end_div_4):
-                    global_vars = {"in_1": states["in_1"][1]*10,
-                                "in_2": states["in_2"][1]*10,
-                                "eval": states["out"][1]*10,
-                                "learn": 1}
-                elif (2*t_end_div_4 <= t < 3*t_end_div_4):
-                    global_vars = {"in_1": states["in_1"][2]*10,
-                                "in_2": states["in_2"][2]*10,
-                                "eval": states["out"][2]*10,
-                                "learn": 1}
-                else:
-                    global_vars = {"in_1": states["in_1"][3]*10,
-                                "in_2": states["in_2"][3]*10,
-                                "eval": states["out"][3]*10,
-                                "learn": 1}
-
-                track = (t % plot_resolution) == 0
-
+                # is it time to log changes? Changes are logged at resolution plot_resolution 
+                track = (t % plot_resolution) == 0 
                 if track:
-                    d = {'t':T}
+                    d = {'t':T} # keep track of time
                     for obs in observables_global:
-                        d[obs] = global_vars[obs]
+                        d[obs] = global_vars[obs] # keep track of global variables
                 
-                    functions[T] = defaultdict(int)
+                    functions[T] = defaultdict(int) # this object will log the functions that are currently implemented within the population
 
-                
+                # go through all the cells and update their states
                 for i in range(N):
                     for j in range(N):
+                        # tracking changes
                         if track:    
-                            prefix= f'cell_{i},{j}_'
-                            for obs in observables_local:
+                            prefix= f'cell_{i},{j}_' # a prefix for local variables
+                            for obs in observables_local: # keep track of local variables
                                 if obs in pop[i][j].state:
-                                    if obs == 'y':
-                                        ff = pop[i][j].decode_function()
+                                    if obs == 'y': # 'y' denotes an output 
+                                        ff = pop[i][j].decode_function() # decode_function will identify the computing function a cell implements with program plasmids
                                         if ff:
                                             d[prefix+ff] = pop[i][j].state[obs]
                                     else:
                                         d[prefix+obs] = pop[i][j].state[obs]                                                
+                        # end of tracking changes
+
+                        # state update
                         action = pop[i][j].update(dt, global_vars)
-                        if action:
-                            if len(action) == 2:
+
+                        # state update can return:
+                        # - none: no additional action required
+                        # - a tuple with two elements: plasmid_pair - the cell wants to donate a plasmid to one of its neighbours
+                        # - a string "apoptosis": the cell should undergo apoptosis (programmed cell death)
+                        if action: # if actions == None nothing needs to be done 
+                            if len(action) == 2: # donate a plasmids
                                 plasmid_pair = action
                                 self.give_plasmid(i, j, plasmid_pair)
-                            elif action == "apoptosis":
+                            elif action == "apoptosis": # go into apoptosis
                                 self.apoptosis(i, j)                        
                         
                         if track:
-                            functions[T][pop[i,j].decode_function()] += 1
+                            functions[T][pop[i,j].decode_function()] += 1 # increase the counter counting the number of occurrences of the function that is implemented within this (i,j) cell
 
                 if track:     
                     df = df.append(d, ignore_index=True, sort=False)        
 
         return df, functions
 
-if __name__ == "__main__":
-    #generate_cells(2, 3, 2, 3)
+if __name__ == "__main__":    
     pass
 
 

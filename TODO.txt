@@ -1,6 +1,10 @@
-- večvhodne funkcije z mintermi: 
--- vhodni nivo: generiranje vhodov in negiranih vhodov
--- 2 vhodni, 3 vhodni, 4 vhodni... AND - odvisno od števila vhodov
+- kako pretestirati optimizacijski pipeline?? 
+-- različne velikosti mreže
+-- različne vrednosti parametrov
+-- različne kompleksnosti funkcij
+-- primerjava: mintermi vs. YES/NOT vrata
+
+- pohitritev, paralelizacija
 
 - optimizacija: počasnejša razgradnja fitnesa, višji prag za naučenost; kalibracija parametrov (tudi ostalih: verjetnost rekombinacije, reinicializacije...)
 

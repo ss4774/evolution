@@ -1,4 +1,6 @@
 from parameter_values import *
+import numpy as np
+from itertools import combinations
 
 #alpha = 10
 #Kd = 1
@@ -30,6 +32,53 @@ def AND(in1, in2, params = (alpha, Kd, n)):
     dy_dt = alpha * (frac1*frac2)/(1 + frac1 + frac2 + frac1*frac2)
     
     return dy_dt
+
+# f = lambda *ins: models.generalised_AND(*ins, code="011")
+
+"""
+def generalised_AND(*ins, code, params = (alpha, Kd, n)):        
+    alpha, Kd, n = params
+
+    fracs = (np.array(ins)/Kd)**n
+    dy_dt = 1
+    for frac, weight in zip(fracs, code):        
+        if weight == "1":            
+            dy_dt *= frac
+    
+    dy_dt *= alpha
+
+    denom = 0
+    for i in range(len(fracs)+1):
+        elts = list(combinations(fracs,i))
+        for elt in elts:
+            denom += np.prod(elt)
+
+    dy_dt /= denom
+
+    return dy_dt
+"""
+def generalised_AND(code, *ins, params = (alpha, Kd, n)):        
+    alpha, Kd, n = params
+
+    fracs = (np.array(ins)/Kd)**n
+        
+    dy_dt = 1
+    for frac, weight in zip(fracs, code):        
+        if weight == "1":            
+            dy_dt *= frac
+    
+    dy_dt *= alpha
+
+    denom = 0
+    for i in range(len(fracs)+1):
+        elts = list(combinations(fracs,i))
+        for elt in elts:            
+            denom += np.prod(elt)
+
+    dy_dt /= denom
+
+    return dy_dt
+
 
 
 def AND00(in1, in2, params = (alpha, Kd, n)):        

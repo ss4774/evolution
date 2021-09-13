@@ -9,15 +9,16 @@ import matplotlib.pyplot as plt
 observables_global = ["in_1", "in_2", "eval"]
 observables_local =  ["fitness","apoptosis","y"]#, "fitness", "apoptosis"]
 
-states = {"in_1":(0,0,10,10),
-          "in_2":(0,10,0,10),
-          "eval":(0,10,10,0)}
+states = {"in_1":(0,0,0,0,10,10,10,10),
+          "in_2":(0,0,10,10,0,0,10,10),
+          "in_3":(0,10,0,10,0,10,0,10),
+          "eval":(0,10,10,0,10,0,0,10)}
 
-N = 2 # size of the lattice is N x N
-N_inputs = 2 # number of inputs: in_1, in_2,...in_N_inputs
+N = 10 # size of the lattice is N x N
+N_inputs = 3 # number of inputs: in_1, in_2,...in_N_inputs
 iterations = 3 # number of learning iterations
 
-t_end = 100
+t_end = 400
 dt = 0.1
 plot_resolution = 1
 

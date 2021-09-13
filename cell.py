@@ -183,8 +183,16 @@ class cell:
             for i,input in enumerate(inputs):
                 if input in functions:
                     inputs[i] = functions[input]
-            
-            if 'NOR' in p:
+            if 'minterm' in p:
+                code = p.split("_")[-1]        
+                inputs_w = []
+                for input,c in zip(inputs, list(code)):
+                    if c == "0":
+                        inputs_w.append(f'NOT({input})')
+                    else:
+                        inputs_w.append(f'{input}')
+                func = f'({" AND ".join(inputs_w)})'
+            elif 'NOR' in p:
                 func = f'NOT({" OR ".join(inputs)})'
             elif 'OR' in p:
                 func = f'({" OR ".join(inputs)})'
