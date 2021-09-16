@@ -8,6 +8,9 @@ from parameter_values import *
 from sympy import symbols
 from sympy.logic.boolalg import to_dnf
 
+#
+# a class describing each cell
+#
 class cell:
     def __init__(self):
         self.plasmids = {}

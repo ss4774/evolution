@@ -1,6 +1,6 @@
 #import cell
 #import models
-import population_generator
+import population
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ plot_resolution = 1
 
 functions = {}
 
-p = population_generator.population_generator()
+p = population.population()
 p.generate_cells_minterms(N, N_inputs)
 
 df, functions = p.simulate(states, observables_local, observables_global, t_end, dt=dt, iterations = iterations, plot_resolution = plot_resolution)

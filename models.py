@@ -1,3 +1,8 @@
+#
+# models of logic functions
+#
+
+
 from parameter_values import *
 import numpy as np
 from itertools import combinations
@@ -6,7 +11,6 @@ from itertools import combinations
 #Kd = 1
 #n = 2
 #delta = 1
-
 
 def YES(x, params = (alpha, Kd, n)):    
     alpha, Kd, n = params

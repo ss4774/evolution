@@ -11,7 +11,10 @@ import parameter_values
 
 import pandas as pd
 
-class population_generator:
+#
+# a class describing a population
+#
+class population:
     def __init__(self,  neighbourhood = "moore"):        
         self.neighbourhood = neighbourhood
         self.pop = None

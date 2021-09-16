@@ -14,14 +14,14 @@ delta = 1
 
 # fitness protein parameters
 alpha_fitness = 2.5
-Kd_fitness = 1
-n_fitness = 2
+Kd_fitness = 1 # Kd_eval, Kd_y
+n_fitness = 2 # n_eval, n_y
 delta_fitness = 0.2
 
 # apoptosis protein parameters
 alpha_apoptosis = 1
-Kd_apoptosis = 1
-n_apoptosis = 4
+Kd_apoptosis = 1 #Kd_F
+n_apoptosis = 4 #n_F
 delta_apoptosis = 0.01
 
 # other parameters
