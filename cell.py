@@ -20,6 +20,7 @@ class cell:
 
         self.mode = 1 # 0 ... not learning; 1 ... learning; 2 ... optimized
 
+    # copy the whole object and return it
     def copy(self):
         c = cell()
 
@@ -32,27 +33,28 @@ class cell:
 
         return c
 
-
-
     """
     changing functionalities of a cell
     """    
-    # plasmids and functions - operons
-    # dictionary: 
-    # - key = label
-    # - value = dictionary with keys
-    # -- inputs
-    # -- output
-    # -- f
+    # add an operon describing a logic function (1 plasmid = 1 operon)
+    # plasmids and functions - operons   
     def add_operon(self, label, inputs, output, function, add_to, params=None, mod_degradation=None):
+        # dictionary: 
+        # - key = label
+        # - value = dictionary with keys
+        # -- inputs
+        # -- output
+        # -- f                
         d = {}
         d['inputs'] = inputs
         d['output'] = output
         d['f'] = function        
         
+        # if params are not specified, default params are used
         if params:
             d['params'] = params
 
+        # if an output should have non-default degradation rate (modified degradation)
         if mod_degradation:
             self.mod_degradation[output] = mod_degradation
             d['mod_degradation'] = mod_degradation
@@ -63,12 +65,15 @@ class cell:
             if x not in self.state:
                 self.state[x] = 0
 
+    # used for basic functions that are not altered during the simulation process (e.g., fitness evaluation, apoptosis signal production)
     def add_basic_function(self, label, inputs, output, function, params=None, mod_degradation=None):
         self.add_operon(label, inputs, output, function, self.basic_functions, params=params, mod_degradation=mod_degradation)
 
+    # used for computing functions that can be altered during the simulation process (e.g., getting a new plasmid, losing a plasmid)
     def add_plasmid(self, label, inputs, output, function, params=None, mod_degradation=None):
         self.add_operon(label, inputs, output, function, self.plasmids, params=params, mod_degradation=mod_degradation)
 
+    # remove a plasmid
     def lose_plasmid(self, plasmid_id=None):
         if self.plasmids:
             if plasmid_id == None:
@@ -86,17 +91,18 @@ class cell:
                 else:
                     del self.mod_degradation[output]
 
+    # copy and return a plasmids with a probability (rate*dt)
     def copy_plasmid(self, rate, dt):      
         if self.plasmids:
             if np.random.random() < rate*dt:
                 plasmid_ids = list(self.plasmids.keys())
                 plasmid_id = np.random.choice(plasmid_ids, size=1, replace=False)[0]
                 return (plasmid_id, self.plasmids[plasmid_id])
-        
-
+     
     """
     state update functions
     """
+    # update functions given by a dict operons. Updates are performed on a dict d_state (key = variable/protein, value = change)
     def update_operons(self, d_state, operons):
         for _, operon in operons.items():
             f = operon['f']
@@ -110,6 +116,7 @@ class cell:
             else:
                 d_state[operon['output']] += f(*inputs)
 
+    # update plasmids
     def update_plasmids(self, d_state):
         self.update_operons(d_state, self.plasmids)
 
@@ -229,17 +236,19 @@ class cell:
                 functions[output] = func
             
         if 'y' in functions:
-            syms = symbols(",".join(all_inputs))
-            if type(syms) != 'tuple':
-                syms = (syms,)
-            
-            for input, sym in zip(all_inputs, syms):
-                locals()[input] = sym
+            if use_sympy:
+                syms = symbols(",".join(all_inputs))
+                if type(syms) != 'tuple':
+                    syms = (syms,)
+                
+                for inpt, sym in zip(all_inputs, syms):
+                    locals()[inpt] = sym
 
             f = functions['y']
             f = f.replace("OR", "|").replace("NOT", "~").replace("AND", "&").replace("YES","")
-            f = to_dnf(f, True)
-            f = str(f)
+            if use_sympy:
+                f = to_dnf(f, True)
+                f = str(f)
 
             return f"y={f}"
 

@@ -30,10 +30,10 @@ df, functions = p.simulate(states, observables_local, observables_global, t_end,
 
 df.to_csv('test.txt', index=False)
 
-f = open('functions.txt', 'w')
+f = open('examples\\functions2.txt', 'w')
 for t in functions:
     NF = sorted(functions[t].items(), key=lambda x: x[1])
-    f.write(f't={t}:')
+    f.write(f't={t};')
     for n,func in NF:
         f.write(f'{n}:{func}; ')
     f.write("\n")
