@@ -11,11 +11,11 @@ This repository is complementing the paper *Programmable evolution of bacterial 
 * [`params.py`](params.py): paramemeter values used in simulations.
 
 ## Dependencies
-The code can be used in a combination with Python 3 programming environment using the following libraries:
+The code can be used in a combination with Python 3 programming environment with an additional installation of the following libraries:
 * numpy
 * matplotlib
 * pandas
-
+* sympy
 
 ## How to cite this work
 Please cite this work as:
