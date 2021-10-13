@@ -581,12 +581,13 @@ class population:
     #
     # !!! SIMULATION !!!
     # 
-    def simulate(self, states, observables_local, observables_global, t_end, dt=0.1, iterations = 1, plot_resolution = 1):
+    def simulate(self, states, observables_local, observables_global, t_end, dt=0.1, iterations = 1, plot_resolution = 1, track_states = True):
 
         N = self.N
         pop = self.pop
 
-        df = pd.DataFrame(dtype=float)
+        if track_states: # if False only functions will be tracked
+            df = pd.DataFrame(dtype=float)
         functions = {}
 
         N_states = len(list(states.values())[0]) # how many different states are simulated in 1 iteration
@@ -608,17 +609,18 @@ class population:
                 # is it time to log changes? Changes are logged at resolution plot_resolution 
                 track = (t % plot_resolution) == 0 
                 if track:
-                    d = {'t':T} # keep track of time
-                    for obs in observables_global:
-                        d[obs] = global_vars[obs] # keep track of global variables
-                
+                    if track_states:
+                        d = {'t':T} # keep track of time
+                        for obs in observables_global:
+                            d[obs] = global_vars[obs] # keep track of global variables
+                    
                     functions[T] = defaultdict(int) # this object will log the functions that are currently implemented within the population
 
                 # go through all the cells and update their states
                 for i in range(N):
                     for j in range(N):
                         # tracking changes
-                        if track:    
+                        if track_states and track:    
                             prefix= f'cell_{i},{j}_' # a prefix for local variables
                             for obs in observables_local: # keep track of local variables
                                 if obs in pop[i][j].state:
@@ -647,10 +649,13 @@ class population:
                         if track:
                             functions[T][pop[i,j].decode_function()] += 1 # increase the counter counting the number of occurrences of the function that is implemented within this (i,j) cell
 
-                if track:     
+                if track_states and track:     
                     df = df.append(d, ignore_index=True, sort=False)        
-
-        return df, functions
+        
+        if track_states:
+            return df, functions
+        else:
+            return None, functions
 
 if __name__ == "__main__":    
     pass
