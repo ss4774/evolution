@@ -22,7 +22,7 @@ N_inputs = 2 # number of inputs: in_1, in_2,...in_N_inputs
 iterations = 3 # number of learning iterations
 
 t_end = 100
-dt = 0.5
+dt = 0.1
 plot_resolution = 1
 
 functions = {}
@@ -47,8 +47,8 @@ if func:
 for t in functions:
     NF = sorted(functions[t].items(), key=lambda x: x[1])
     f.write(f't={t};')
-    for n,func in NF:
-        f.write(f'{n}:{func}; ')
+    for ff,nn in NF:
+        f.write(f'{ff}:{nn}; ')
     f.write("\n")
 f.close()
 
