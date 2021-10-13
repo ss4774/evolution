@@ -1,0 +1,8 @@
+Kruskal-Wallis H-test (H0: the population median of all of the groups are equal): 0.2408273438959629, H0 not_rejected
+Mann-Whitney U test (nonparametric test, H0: both distributions are the same
+4 vs. 25: 0.4355263924342519, H0 not_rejected
+4 vs. 49: 0.30391574830278917, H0 not_rejected
+4 vs. 100: 0.04084011443381004, H0 rejected
+25 vs. 49: 0.30401845609751343, H0 not_rejected
+25 vs. 100: 0.04090594046667249, H0 rejected
+49 vs. 100: 0.22851771154110534, H0 not_rejected
