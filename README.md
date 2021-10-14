@@ -7,10 +7,10 @@ This repository is complementing the paper *Programmable evolution of bacterial 
 * [`cell.py`](cell.py): a Python class implementing a synthetic cell.
 * [`population.py`](population.py): functionalities to generate a synthetic population, distribute the functionalities among the cells in the population, and run the simulations.
 * [`models.py`](models.py): Hill functions and protein degradation models composing the models of logic functions.
-* ['convergence2_simple'](convergence2_simple.py): analysis of convergence for 2-input logic functions using YES and NOT operons.
-* ['convergence2_minterms'](convergence2_minterms.py): analysis of convergence for 2-input logic functions using operons encoding minterms.
-* ['convergence3_minterms'](convergence3_minterms.py): analysis of convergence for 3-input logic functions using operons encoding minterms.
-* ['plot_convergence.ipynb'](plot_convergence.ipynb): plot the graphs visualising the convergence of solutions.
+* [`convergence2_simple.py`](convergence2_simple.py): analysis of convergence for 2-input logic functions using YES and NOT operons.
+* [`convergence2_minterms.py`](convergence2_minterms.py): analysis of convergence for 2-input logic functions using operons encoding minterms.
+* [`convergence3_minterms.py`](convergence3_minterms.py): analysis of convergence for 3-input logic functions using operons encoding minterms.
+* [`plot_convergence.ipynb`](plot_convergence.ipynb): plot the graphs visualising the convergence of solutions.
 * [`parameter_values.py`](parameter_values.py): paramemeter values used in simulations.
 * [`simulate_2_input.py`](simulate_2_input.py): an example of a simulation of the evolution process using YES and NOT operons.
 * [`simulate_2_minterms.py`](simulate_2_minterms.py): an example of a simulation of the evolution process using operons encoding minterms.
