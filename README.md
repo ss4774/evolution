@@ -24,15 +24,15 @@ The code can be used in a combination with Python 3 programming environment with
 * sympy
 
 [//]: # (## How to cite this work)
-//Please cite this work as:
+[//]: # (Please cite this work as:)
 
-//TODO
+[//]: # (TODO)
 
-//The paper is available at TODO
+[//]: # (The paper is available at TODO)
 
 ## Contact
 Please direct your questions and comments to [miha.moskon@fri.uni-lj.si](mailto:miha.moskon@fri.uni-lj.si)
 
-//## References
+[//]: # (## References)
 
-//TODO
+[//]: # (TODO)
