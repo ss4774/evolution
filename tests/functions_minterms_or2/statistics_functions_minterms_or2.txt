@@ -1,0 +1,13 @@
+Kruskal-Wallis H-test: 0.1839470997542569, H0 not rejected
+
+\bigskip
+
+\noindent Mann-Whitney U test:
+\begin{itemize}
+\item 4 vs. 25: 0.1484144041009443, H0 not rejected
+\item 4 vs. 49: 0.1484144041009443, H0 not rejected
+\item 4 vs. 100: 0.20572308873881906, H0 not rejected
+\item 25 vs. 49: 0.5, H0 not rejected
+\item 25 vs. 100: 0.4022431773057885, H0 not rejected
+\item 49 vs. 100: 0.4022431773057885, H0 not rejected
+\end{itemize}
