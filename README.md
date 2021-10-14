@@ -23,7 +23,7 @@ The code can be used in a combination with Python 3 programming environment with
 * pandas
 * sympy
 
-//## How to cite this work
+[//]: # (## How to cite this work)
 //Please cite this work as:
 
 //TODO
