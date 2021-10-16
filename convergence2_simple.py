@@ -41,13 +41,13 @@ states_xor = {"in_1":(0,0,10,10),
 label_xor = "xor"
 
 
-#func_all = (func_xor, func_or, func_and)
-#states_all = (states_xor, states_or, states_and)
-#labels = (label_xor, label_or, label_and)
+func_all = (func_xor, func_or, func_and)
+states_all = (states_xor, states_or, states_and)
+labels = (label_xor, label_or, label_and)
 
-func_all = (func_xor,)
-states_all = (states_xor,)
-labels = (label_xor,)
+#func_all = (func_xor,)
+#states_all = (states_xor,)
+#labels = (label_xor,)
 
 lattice_sizes = (2,5,7,10)
 #lattice_sizes = (5,)
