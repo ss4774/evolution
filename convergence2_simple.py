@@ -22,13 +22,6 @@ t_end = 100
 dt = 0.1
 plot_resolution = 1
 
-
-func_xor = '(~(in_1) & in_2) | (in_1 & ~(in_2))'
-states_xor = {"in_1":(0,0,10,10),
-          "in_2":(0,10,0,10),
-          "eval":(0,10,10,0)}
-label_xor = "xor"
-
 func_and = '(in_1 & in_2)'
 states_and = {"in_1":(0,0,10,10),
           "in_2":(0,10,0,10),
@@ -41,14 +34,20 @@ states_or = {"in_1":(0,0,10,10),
           "eval":(0,10,10,10)}
 label_or = "or"
 
+func_xor = '(~(in_1) & in_2) | (in_1 & ~(in_2))'
+states_xor = {"in_1":(0,0,10,10),
+          "in_2":(0,10,0,10),
+          "eval":(0,10,10,0)}
+label_xor = "xor"
 
-func_all = (func_xor, func_or, func_and)
-states_all = (states_xor, states_or, states_and)
-labels = (label_xor, label_or, label_and)
 
-#func_all = (func_or,)
-#states_all = (states_or,)
-#labels = (label_or,)
+#func_all = (func_xor, func_or, func_and)
+#states_all = (states_xor, states_or, states_and)
+#labels = (label_xor, label_or, label_and)
+
+func_all = (func_xor,)
+states_all = (states_xor,)
+labels = (label_xor,)
 
 lattice_sizes = (2,5,7,10)
 #lattice_sizes = (5,)
@@ -57,8 +56,6 @@ for func, states, label in zip(func_all, states_all, labels):
     for N in lattice_sizes:
         for _ in range(repeats): # 10 repetitions
   
-
-
             #N = 1 # size of the lattice is N x N
 
             p = population.population()

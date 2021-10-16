@@ -13,7 +13,7 @@ observables_local =  ["y"]
 
 states = {"in_1":(0,0,10,10),
           "in_2":(0,10,0,10),
-          "eval":(0,10,10,0)}
+          "eval":(0,10,10,10)}
 
 N = 2 # size of the lattice is N x N
 N_inputs = 2 # number of inputs: in_1, in_2,...in_N_inputs
@@ -29,11 +29,8 @@ functions = {}
 
 
 plasmids = [(["in_1"], "x11", "YES"),
-            (["in_2"], "x11", "NOT"),
-            (["in_1"], "x12", "NOT"),
-            (["in_2"], "x12", "YES"),
-            (["x11"], "y", "NOT"),
-            (["x12"], "y", "NOT")]
+            (["in_2"], "x11", "YES"),
+            (["x11"], "y", "YES")]
 
 """
 plasmids = [(["in_1"], "not_in_1", "NOT"),
