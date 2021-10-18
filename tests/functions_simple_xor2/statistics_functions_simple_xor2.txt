@@ -1,0 +1,4 @@
+Kruskal-Wallis H-test: 0.00453989765905268, H0 rejected
+
+\bigskip
+

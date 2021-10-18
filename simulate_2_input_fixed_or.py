@@ -22,7 +22,7 @@ N_terms = 3 # number of terms per layer
 iterations = 1 # number of learning iterations
 
 t_end = 100
-dt = 0.1
+dt = 0.01
 plot_resolution = 1
 
 functions = {}
@@ -61,8 +61,19 @@ for t in functions:
 f.close()
 
 
+plt.rcParams.update({'font.size': 14})
+
 df = df.set_index('t')
 df.plot()
+
+fig=plt.gcf()
+fig.set_size_inches([10,4])
+
+plt.xlabel('Time [min]')
+plt.ylabel('Concentrations [nM]')
+    
+plt.savefig(f'functions_or.pdf', bbox_inches = 'tight')
+
 plt.show()
 
 
