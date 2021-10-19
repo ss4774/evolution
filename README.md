@@ -1,4 +1,4 @@
-# Synthetic evolution of bacterial populations
+# Programmable evolution of computing circuits in cellular populations
 
 This repository is complementing the paper *Programmable evolution of computing circuits in cellular populations*.
 
