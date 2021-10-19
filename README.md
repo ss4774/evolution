@@ -1,6 +1,6 @@
 # Synthetic evolution of bacterial populations
 
-This repository is complementing the paper *Programmable evolution of cellular populations*.
+This repository is complementing the paper *Programmable evolution of computing circuits in cellular populations*.
 
 ## Main Files
 
