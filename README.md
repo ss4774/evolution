@@ -14,6 +14,13 @@ This repository is complementing the paper *Programmable evolution of bacterial 
 * [`parameter_values.py`](parameter_values.py): paramemeter values used in simulations.
 * [`simulate_2_input.py`](simulate_2_input.py): an example of a simulation of the evolution process using YES and NOT operons.
 * [`simulate_2_minterms.py`](simulate_2_minterms.py): an example of a simulation of the evolution process using operons encoding minterms.
+* [`simulate_2_input_fixed_and.py`](simulate_2_input_fixed_and.py): an example of a simulation in which AND function is preset as well as optimised and thus sustained throughout the simulation.
+* [`simulate_2_input_fixed_or.py`](simulate_2_misimulate_2_input_fixed_or.py): an example of a simulation in which OR function is preset as well as optimised and thus sustained throughout the simulation.
+* [`simulate_2_input_fixed_xor.py`](simulate_2_input_fixed_xor.py): an example of a simulation in which XOR function is preset as well as optimised and thus sustained throughout the simulation.
+
+
+simulate_2_input_fixed_and
+
 
 
 ## Dependencies
