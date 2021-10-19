@@ -19,9 +19,6 @@ This repository is complementing the paper *Programmable evolution of bacterial 
 * [`simulate_2_input_fixed_xor.py`](simulate_2_input_fixed_xor.py): an example of a simulation in which XOR function is preset as well as optimised and thus sustained throughout the simulation.
 
 
-simulate_2_input_fixed_and
-
-
 
 ## Dependencies
 The code can be used in a combination with Python 3 programming environment with an additional installation of the following libraries:
