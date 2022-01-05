@@ -4,6 +4,7 @@ import models
 from itertools import product, combinations
 from collections import defaultdict
 from functools import partial
+from profilehooks import profile
 
 import numpy as np
 
@@ -581,6 +582,7 @@ class population:
     #
     # !!! SIMULATION !!!
     # 
+    @profile
     def simulate(self, states, observables_local, observables_global, t_end, dt=0.1, iterations = 1, plot_resolution = 1, track_states = True):
 
         N = self.N

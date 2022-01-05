@@ -54,7 +54,9 @@ lattice_sizes = (2,5,7,10)
 
 for func, states, label in zip(func_all, states_all, labels):
     for N in lattice_sizes:
-        for _ in range(repeats): # 10 repetitions
+        for repeat in range(repeats): # 10 repetitions
+
+            print(f"\nLattice size: {N}\nRepeat number: {repeat}\n")
   
             #N = 1 # size of the lattice is N x N
 

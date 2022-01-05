@@ -7,6 +7,7 @@ from parameter_values import *
 
 from sympy import symbols
 from sympy.logic.boolalg import to_dnf
+from profilehooks import profile
 
 #
 # a class describing each cell
@@ -123,6 +124,7 @@ class cell:
     def update_basic_functions(self, d_state):
         self.update_operons(d_state, self.basic_functions)
 
+    @profile
     def update(self, dt=0.1, global_vars={}):
         d_state = {}
         self.state.update(global_vars)
